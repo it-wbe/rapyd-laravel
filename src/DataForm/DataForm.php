@@ -72,7 +72,7 @@ class DataForm extends Widget
     public $model_relations;
     public $validator;
     public $validator_messages = array();
-    
+
     public $output = "";
     public $custom_output = null;
     public $fields = array();
@@ -274,9 +274,9 @@ class DataForm extends Widget
      */
     public function errors($messages = [])
     {
-        $this->validator_messages = $messages; 
+        $this->validator_messages = $messages;
     }
-    
+
     /**
      * @return bool
      */
@@ -288,17 +288,23 @@ class DataForm extends Widget
         foreach ($this->fields as $field) {
             $field->action = $this->action;
             if (isset($field->rule)) {
+              if(is_array($field->rule)&&!is_int(key($field->rule))){
+                foreach ($field->rule as $key => $value) {
+                  $rules[$key] = $value;
+                }
+              }else{
                 $rules[$field->name] = $field->rule;
+              }
                 $attributes[$field->name] = $field->label;
             }
         }
+//        dd($rules);
         if (isset($this->validator)) {
             return !$this->validator->fails();
         }
         if (isset($rules)) {
-
             $this->validator = Validator::make(Input::all(), $rules, $this->validator_messages, $attributes);
-
+//            $val = Validator::make(Input::all('relations'), $rules, $this->validator_messages, $attributes);
             return !$this->validator->fails();
         } else {
             return true;
@@ -382,13 +388,11 @@ class DataForm extends Widget
 
     protected function process()
     {
-        //database save
         switch ($this->action) {
             case "update":
             case "insert":
-                //validation failed
                 if (!$this->isValid()) {
-                    $this->process_status = "error";
+               $this->process_status = "error";
                     foreach ($this->fields as $field) {
                         $field->action = "idle";
                     }
@@ -401,6 +405,7 @@ class DataForm extends Widget
                     $field->action = $this->action;
                     $result = $field->autoUpdate();
                     if (!$result) {
+//                        dd('error');
                         $this->process_status = "error";
 
                         return false;
@@ -510,7 +515,7 @@ class DataForm extends Widget
             } elseif ($result && is_a($result, 'Illuminate\View\View')) {
                 $this->custom_output = $result;
             }
-            
+
             //reprocess if an error is added in closure
             if ($this->process_status == 'error') {
                 $this->process();
@@ -579,7 +584,7 @@ class DataForm extends Widget
     {
         return ($this->custom_output != null) ? true : false;
     }
-    
+
     /**
      * @return string
      */
@@ -660,7 +665,7 @@ class DataForm extends Widget
         $this->has_placeholders = true;
         return $this;
     }
-    
+
     /**
      * Magic method to catch all appends
      *

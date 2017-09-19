@@ -1,12 +1,12 @@
 {
-    "name": "wbe/rapyd",
+    "name": "zofe/rapyd",
     "description": "crud widgets for laravel, to make an admin in few lines of code",
-    "homepage": "https://github.com/it-wbe/rapyd-laravel",
+    "homepage": "https://github.com/zofe/rapyd-laravel",
     "keywords": ["laravel", "crud", "rapyd", "administrator", "admin", "backend", "datatable", "form"],
     "authors": [
         {
-            "name": "it-wbe",
-            "email": "wbe.it.lviv@gmail.com"
+            "name": "zofe",
+            "email": "felice.ostuni@gmail.com"
         }
     ],
     "require": {

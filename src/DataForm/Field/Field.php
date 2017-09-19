@@ -73,7 +73,7 @@ abstract class Field extends Widget
     public $messages = array();
     public $query_scope;
     public $query_scope_params = [];
-    
+
     /**
      * auto apply xss filter or not
      * @var bool
@@ -269,6 +269,7 @@ abstract class Field extends Widget
 
     public function extra($extra)
     {
+        dd($extra);
         $this->extra_output = $extra;
 
         return $this;
@@ -301,7 +302,6 @@ abstract class Field extends Widget
 
         if ($this->request_refill == true && $process && Input::exists($this->name) ) {
             if ($this->multiple) {
-
                 $this->value = "";
                 if (Input::get($this->name)) {
                     $values = Input::get($this->name);
@@ -364,21 +364,25 @@ abstract class Field extends Widget
 //                     @$this->model->$relation->$name;
 
                     break;
+                    case $this->relation instanceof \Illuminate\Database\Eloquent\Relations\HasMany:
+                      $this->value = $this->relation->get()->isEmpty() ? '' : $this->relation->get();
 
+                    break;
+                case $this->relation instanceof \Illuminate\Database\Eloquent\Relations\MorphToMany:
+                        dd('morph to many ');
+                    break;
                 //es. "comments" for "Article"
                 default:
                     //'Illuminate\Database\Eloquent\Relations\HasOneOrMany':
                     //'Illuminate\Database\Eloquent\Relations\HasMany':
                     //polimorphic, etc..
                     throw new \InvalidArgumentException("The field {$this->db_name} is a " . $methodClass
-                        . " but Rapyd can handle only BelongsToMany, BelongsTo, and HasOne");
+                        . " but Rapyd can handle only BelongsToMany, BelongsTo, HasOne and HasMany");
                     break;
             }
         } elseif ((isset($this->model)) && (Input::get($this->name) === null) && ($this->model->offsetExists($this->db_name))) {
-
             $this->value = $this->model->getAttribute($this->db_name);
         }
-
         $this->old_value = $this->value;
         $this->getMode();
     }
@@ -483,6 +487,7 @@ abstract class Field extends Widget
 
     public function options($options)
     {
+//        dd($options);
         if (is_array($options)) {
             $this->options += $options;
         }
@@ -508,20 +513,20 @@ abstract class Field extends Widget
         return $this;
     }
 
-    public function editable() 
+    public function editable()
     {
         if ($this->mode == 'readonly') {
             return $this->edited;
         }
         return true;
     }
-    
+
     public function autoUpdate($save = false)
     {
         $this->getValue();
         $this->getNewValue();
         if (!$this->editable()) return true;
-        
+
         if (is_object($this->model) && isset($this->db_name)) {
             if (
                 !(Schema::connection($this->model->getConnectionName())->hasColumn($this->model->getTable(), $this->db_name)
@@ -529,29 +534,28 @@ abstract class Field extends Widget
                 || is_a($this->relation, 'Illuminate\Database\Eloquent\Relations\Relation') //Relation
                 ) {
 
-                //belongsTo relation 
+                //belongsTo relation
                 if (is_a($this->relation, 'Illuminate\Database\Eloquent\Relations\BelongsTo')) {
                     $this->model->setAttribute($this->db_name, $this->new_value);
                     return true;
                 }
                 //other kind of relations are postponed
-                $self = $this; 
+                $self = $this;
                 $this->model->saved(function () use ($self) {
                     $self->updateRelations();
                 });
-                
+
                 //check for relation then exit
                 return true;
             }
             if (!is_a($this->relation, 'Illuminate\Database\Eloquent\Relations\Relation')) {
                 $this->model->setAttribute($this->db_name, $this->new_value);
             }
-            
+
             if ($save) {
                 return $this->model->save();
             }
         }
-
         return true;
     }
 
@@ -564,8 +568,6 @@ abstract class Field extends Widget
         }
         if ($this->relation != null) {
 
-            //dd($this->relation, get_class($this->relation));
-            
             $methodClass = get_class($this->relation);
             switch ($methodClass) {
                 case 'Illuminate\Database\Eloquent\Relations\BelongsToMany':
@@ -601,7 +603,7 @@ abstract class Field extends Widget
                     $relation->{$this->rel_field} = $data;
                     $this->relation->save( $relation );
                     break;
-                
+
                 case 'Illuminate\Database\Eloquent\Relations\HasOneOrMany':
 
                 case 'Illuminate\Database\Eloquent\Relations\HasMany':
@@ -637,7 +639,7 @@ abstract class Field extends Widget
     }
 
     /**
-     * parse blade view passing current model 
+     * parse blade view passing current model
      * @param $view
      * @return string
      */
@@ -645,7 +647,7 @@ abstract class Field extends Widget
     {
         return $this->parseString($view, true);
     }
-    
+
 
     public function build()
     {
@@ -653,7 +655,6 @@ abstract class Field extends Widget
             $this->has_wrapper = false;
         }
         $this->getValue();
-//        $this->star = (!($this->status == "show") and $this->required) ? '&nbsp;*' : '';
         $this->req = (!($this->status == "show") and $this->required) ? ' required' : '';
         if (($this->status == "hidden" || $this->visible === false || in_array($this->type, array("hidden", "auto")))) {
             $this->is_hidden = true;
@@ -701,6 +702,7 @@ abstract class Field extends Widget
 
     public function all()
     {
+        dd('all');
         $output  = "";
         if ($this->has_wrapper && $this->has_label && $this->orientation != 'inline') {
             $output .= "<label for=\"{$this->name}\" class=\"{$this->req}\">{$this->label}</label>";
@@ -713,7 +715,7 @@ abstract class Field extends Widget
 
         return $output;
     }
-    
+
     /**
      * Set auto apply xss filter or not
      *
