@@ -126,7 +126,10 @@ abstract class Field extends Widget
 
             $this->relation = $this->model->$relation($relation);
             $this->rel_key = $this->relation->getModel()->getKeyName();
-            $this->rel_fq_key = $this->relation->getModel()->getQualifiedForeignPivotKeyName();
+//             laravel 5.5
+//            $this->rel_fq_key = $this->relation->getModel()->getQualifiedForeignPivotKeyName();
+//            laravel 5.4  but right now work
+            $this->rel_fq_key = $this->relation->getModel()->getQualifiedKeyName();
             $this->rel_name = $relation;
             $this->rel_field = $name;
             $this->name = ($name != $relation) ? $relation . "_" . $name : $name;
