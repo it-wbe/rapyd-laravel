@@ -126,7 +126,7 @@ abstract class Field extends Widget
 
             $this->relation = $this->model->$relation($relation);
             $this->rel_key = $this->relation->getModel()->getKeyName();
-            $this->rel_fq_key = $this->relation->getModel()->getQualifiedKeyName();
+            $this->rel_fq_key = $this->relation->getModel()->getQualifiedForeignPivotKeyName();
             $this->rel_name = $relation;
             $this->rel_field = $name;
             $this->name = ($name != $relation) ? $relation . "_" . $name : $name;
@@ -139,7 +139,7 @@ abstract class Field extends Widget
 
             if (is_a(@$this->relation, 'Illuminate\Database\Eloquent\Relations\BelongsToMany')){
 
-                $this->rel_other_key = $this->relation->getQualifiedRelatedKeyName();
+                $this->rel_other_key = $this->relation->getQualifiedRelatedPivotKeyName();
 
             }
 
