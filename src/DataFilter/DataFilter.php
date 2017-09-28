@@ -82,7 +82,6 @@ class DataFilter extends DataForm
 
                 // prepare the WHERE clause
                 foreach ($this->fields as $field) {
-
                     $field->getValue();
                     $field->getNewValue();
                     $value = $field->new_value;
@@ -167,7 +166,6 @@ class DataFilter extends DataForm
                                   }
                                 continue;
                             }
-
                             switch ($field->clause) {
                                 case "like":
                                     $this->query = $this->query->whereHas($field->rel_name, function ($q) use ($field, $value) {
@@ -235,10 +233,11 @@ class DataFilter extends DataForm
 
                         //not deep, where is on main entity
                         } else {
-
+//                            dd($field);
                             switch ($field->clause) {
                                 case "like":
                                     $this->query = $this->query->where($name, 'LIKE', '%' . $value . '%');
+//                                    dd($this->query->where($name, 'LIKE', '%' . $value . '%'));
                                     break;
                                 case "orlike":
                                     $this->query = $this->query->orWhere($name, 'LIKE', '%' . $value . '%');
@@ -295,12 +294,21 @@ class DataFilter extends DataForm
                                     }
 
                                     break;
+
+                                case 'custom':
+                                    if(is_numeric($value)){
+                                         $this->query->where($name,"=",$value);
+                                    }
+                                    else{// parse
+                                        $this->query =  $this->ParseTypeNumberForFilter($name,$value);
+                                    }
+                                    break;
+
                             }
                         }
 
                     }
                 }
-                // dd($this->query->toSql());
                 break;
             case "reset":
                 $this->process_status = "show";
@@ -309,6 +317,101 @@ class DataFilter extends DataForm
                 break;
             default:
                 return false;
+        }
+    }
+
+    private function ParseTypeNumberForFilter($field_name,$value){
+//        $query;
+//        dump($value);
+       $val_arr = str_split($value,1);
+       $arr_count = count($val_arr);
+
+       $temp_where ='';
+        $temp_or = false;
+
+        foreach ($val_arr as $val_key=>$val_val){
+            if($val_key!=0&&($val_val=='<'||$val_val=='>'||$val_val=='a'||$val_val=='o'||$arr_count==(1+$val_key))){ // робимо наступний where
+                if($arr_count==(1+$val_key)){// якщо останній
+                    $temp_where.=$val_val;
+                    $temp_or = $this->createWhere($field_name,$temp_where,$temp_or); // parse one where
+                }else{
+                    $temp_or = $this->createWhere($field_name,$temp_where,$temp_or); // parse one where
+                    $temp_where = '';
+                    $temp_where.=$val_val;
+                }
+            }else{ // витягаэмо значення для поточного where
+                $temp_where.=$val_val;
+            }
+
+        }
+//            dump($this->query);
+//        exit;
+            return $this->query;
+    }
+    function createWhere($field_name,$str_where,$or=false){
+        $arr_command = str_split($str_where,1);
+//        $temp_command =
+        if($arr_command[0]=='<'&&$arr_command[1]!='='){// <
+           $val = substr($str_where,1);// забираэмо value
+//            dump('<');
+//            dump($val);
+//            dump($or);
+            $this->addWhere($field_name,'<',$val,$or);
+            return false;
+        }
+        if($arr_command[0]=='>'&&$arr_command[1]!='='){// >
+            $val = substr($str_where,1);// забираэмо value
+//            dump('>');
+//            dump($val);
+//            dump($or);
+            $this->addWhere($field_name,'>',$val,$or);
+            return false;
+        }
+        if($arr_command[0]=='<'&&$arr_command[1]=='='){// <=
+            $val = substr($str_where,2);// забираэмо value
+//            dump('<=');
+//            dump($val);
+//            dump($or);
+            $this->addWhere($field_name,'<=',$val,$or);
+            return false;
+        }
+        if($arr_command[0]=='>'&&$arr_command[1]=='='){// >=
+            $val = substr($str_where,2);// забираэмо value
+//            dump('>=');
+//            dump($val);
+//            dump($or);
+            $this->addWhere($field_name,'>=',$val,$or);
+            return false;
+        }
+        if($arr_command[0]=='o'&&$arr_command[1]=='r'){// or
+            $val = substr($str_where,2);// забираэмо value
+            if(is_numeric($val)){
+//                dd($val);
+                $this->addWhere($field_name,'=',$val,true);
+            }
+//            dump('or');
+//            dump($val);
+//            dump($or);
+            return true;
+        }
+        $val = str_split($str_where,1);// забираэмо value
+        $temp_val = null;
+        foreach ($val as $number){
+            if($number!='<'&&$number!='>'&&$number!='o'){
+                $temp_val .=$number;
+            }else{
+                break;
+            }
+        }
+        $this->addWhere($field_name,'=',$temp_val,$or);
+    }
+
+    function addWhere($field_name,$mark,$val,$or)
+    {
+        if ($or) {
+            $this->query->orWhere($field_name, $mark, $val);
+        } else {
+            $this->query->where($field_name, $mark, $val);
         }
     }
 
