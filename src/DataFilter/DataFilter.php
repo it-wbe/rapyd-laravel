@@ -82,6 +82,9 @@ class DataFilter extends DataForm
 
                 // prepare the WHERE clause
                 foreach ($this->fields as $field) {
+                    if($field->name=='show_rows_crud')
+                        continue;
+
                     $field->getValue();
                     $field->getNewValue();
                     $value = $field->new_value;
