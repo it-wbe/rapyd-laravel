@@ -81,7 +81,8 @@ class File extends Field
                 $this->path =  $this->parseString($this->path);
                 $filename = $this->parseString($filename);
                 $filename = $this->sanitizeFilename($filename);
-                $this->new_value = $filename;
+//                dd($this->path);
+                $this->new_value = $this->path.$filename;
 
                 //deferred upload
                 if ($this->upload_deferred) {
@@ -93,7 +94,7 @@ class File extends Field
                             $this->path =  $this->parseString($this->path);
                             $filename = $this->parseString($filename);
                             $filename = $this->sanitizeFilename($filename);
-                            $this->new_value = $filename;
+                            $this->new_value = $this->path.$filename;
                             if ($this->uploadFile($filename)) {
                                 if (is_a($this->relation, 'Illuminate\Database\Eloquent\Relations\Relation'))
                                     $this->updateRelations();
