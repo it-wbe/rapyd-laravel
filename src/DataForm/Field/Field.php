@@ -302,7 +302,6 @@ abstract class Field extends Widget
         if (in_array($this->type, array('file','image'))) {
             $this->request_refill = false;
         }
-
         if ($this->request_refill == true && $process && Input::exists($this->name) ) {
             if ($this->multiple) {
                 $this->value = "";
@@ -335,9 +334,10 @@ abstract class Field extends Widget
                 $this->description = $this->update_description;
             }
         } elseif (($this->status == "show") && ($this->show_value != null)) {
+            dd('get');
             $this->value = $this->show_value;
         } elseif (isset($this->model) && $this->relation != null) {
-
+//        dd('else');
             $methodClass = get_class($this->relation);
 
             switch (true) {
@@ -384,10 +384,13 @@ abstract class Field extends Widget
                     break;
             }
         } elseif ((isset($this->model)) && (Input::get($this->name) === null) && ($this->model->offsetExists($this->db_name))) {
+//            dd('get');
             $this->value = $this->model->getAttribute($this->db_name);
+//            dd($this->value);
         }
         $this->old_value = $this->value;
         $this->getMode();
+//        dump($this);
     }
 
     public function getNewValue()
