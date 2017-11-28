@@ -19,6 +19,7 @@ class File extends Field
     protected $unlink_file = true;
     protected $upload_deferred = false;
     protected $recursion = false;
+	public $css_class = "";
 
     public function __construct($name, $label, &$model = null, &$model_relations = null)
     {
