@@ -87,7 +87,12 @@ class DataFilter extends DataForm
 
                     $field->getValue();
                     $field->getNewValue();
-                    $value = $field->new_value;
+                    
+                    if($field->type=='select' && $field->new_value!=0){
+                        $value = $field->new_value;
+                    }else{
+                        $value = null;
+                    }
 
                     //query scope
                     $query_scope = $field->query_scope;
